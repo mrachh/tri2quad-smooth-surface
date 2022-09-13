@@ -22,10 +22,13 @@
 !  open geometry info
 !
 !
+      print *, "fname_base=",trim(fname_base)
       write(fname1,'(a,a,i2.2,a,i1,a)') trim(fname_base),'_o', &
         norder,'_r0',iref,'.go3'
+      print *, "fname1=",trim(fname1)
 
       call open_gov3_geometry_mem(fname1,npatches,npts)
+      
 
       call prinf('npatches=*',npatches,1)
       call prinf('npts=*',npts,1)
@@ -34,7 +37,7 @@
       allocate(ixyzs(npatches+1),iptype(npatches),norders(npatches))
       allocate(wts(npts))
 
-      call open_gov3_geometry(fname,npatches,norders,ixyzs,&
+      call open_gov3_geometry(fname1,npatches,norders,ixyzs,&
          iptype,npts,srcvals,srccoefs,wts)
       nquad = npatches/2
 !
@@ -45,6 +48,9 @@
         norder,'_r0',0,'.go3'
       call open_gov3_geometry_mem(fname0,npatches0,npts0)
       nquad0 = npatches0/2
+      print *, "nquad0=",nquad0
+      print *, "nquad=",nquad
+
 
       allocate(itri0(2,nquad),itri1(2,nquad))
 
@@ -62,6 +68,7 @@
         nq4 = 4*nq
       enddo
 
+
 !
 ! Now convert to quads
 !
@@ -72,15 +79,22 @@
       allocate(uvs_quad(2,nqpols),w(nqpols),u(nqpols,nqpols))
       allocate(v(nqpols,nqpols))
 
+
       itype = 2
       ipoly = 1
-      call polytens_exps_2d(ipoly,itype,norder+1,uvs_quad,'f',u,nqpols, &
+      call polytens_exps_2d(ipoly,itype,norder+1,'f',uvs_quad,u,nqpols, &
         v,nqpols,w)
-      call prin2('uvs_quad=*',uvs_quad,24)
+      do i=1,nqpols
+        uvs_quad(1,i) = (uvs_quad(1,i) + 1)/2
+        uvs_quad(2,i) = (uvs_quad(2,i) + 1)/2
+      enddo
       
       open(unit=33,file=trim(fnameout))
       alpha = 1.0d0
       beta = 0.0d0
+
+      print *, "nquad=",nquad
+
       do i=1,nquad
         i1 = itri0(1,i)
         i2 = itri0(2,i)
@@ -93,7 +107,8 @@
         enddo
 
         call dgemm_guru('n','t',3,nqpols,nqpols,alpha,src_quad(1,1,i),3,&
-          u,nqpols,beta,srccoefs_quad(1,1,i))
+          u,nqpols,beta,srccoefs_quad(1,1,i),3)
+        if(i.le.3) call prin2('src_quad=*',src_quad(1,1,i),3*nqpols)
         if(i.le.3) call prin2('srccoefs_quad=*',srccoefs_quad(1,1,i),3*nqpols)
       enddo
 
@@ -146,11 +161,12 @@
       real *8 srccoefs_tri1(9,ntpols),srccoefs_tri2(9,ntpols)
       real *8 uvs_quad(2,nqpols)
       real *8 srcinfo_quad(3,nqpols),pols(ntpols),uvs_targ(2)
+
       
 
       do i=1,nqpols
-        u = uvs_quad(1,nqpols)
-        v = uvs_quad(2,nqpols)
+        u = uvs_quad(1,i)
+        v = uvs_quad(2,i)
         srcinfo_quad(1:3,i) = 0
 
         if(u+v.le.1) then 

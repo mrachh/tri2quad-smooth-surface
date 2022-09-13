@@ -58,7 +58,7 @@
       xyz_out(3) = 20.1d0
 
       norder = 16
-      iref = 0
+      iref = 2
       fname_base = '../geometries_go3/cow_new'
       write(fname,'(a,a,i2.2,a,i1,a)') trim(fname_base),'_o', &
         norder,'_r0',iref,'.go3'
@@ -66,6 +66,7 @@
         norder,'_r0',iref,'_quad.go3'
       write(fname1,'(a,i2.2,a,i1,a)') '../vtk_files/cow_new_o', &
         norder,'_r0',iref,'.vtk'
+      print *, "fname=",trim(fname)
             
       call open_gov3_geometry_mem(fname,npatches,npts)
 
@@ -78,7 +79,6 @@
 
       call open_gov3_geometry(fname,npatches,norders,ixyzs,&
          iptype,npts,srcvals,srccoefs,wts)
-      goto 1111
 
       allocate(cms(3,npatches),rads(npatches))
 
@@ -124,7 +124,7 @@
 
       call plot_surface_info_all(dlam,npatches,norders,ixyzs,iptype, &
         npts,srccoefs,srcvals,trim(fname1),'a')
- 1111 continue
+      
       call trimesh_to_quadmesh(fname_base,norder,iref,fname_out)
 
 
