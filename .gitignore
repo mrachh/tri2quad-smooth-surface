@@ -1,0 +1,5 @@
+*.o
+*.go3
+*.vtk
+fort.*
+int2*
