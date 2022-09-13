@@ -12,6 +12,8 @@
       real *8, allocatable :: srcvals(:,:),srccoefs(:,:),wts(:)
       integer, allocatable :: norders(:),ixyzs(:),iptype(:)
       real *8, allocatable :: uvs_quad(:,:),src_quad(:,:,:)
+      real *8, allocatable :: srccoefs_quad(:,:,:)
+      real *8, allocatable :: u(:,:),v(:,:),w(:)
       integer, allocatable :: itri0(:,:),itri1(:,:)
       character *200 fname1,fname0
 
@@ -66,26 +68,33 @@
 !
       nqpols = (norder+1)*(norder+1)
       ntpols = (norder+1)*(norder+2)/2
-      allocate(src_quad(3,nqpols,nquad))
-      allocate(uvs_quad(2,nqpols))
+      allocate(src_quad(3,nqpols,nquad),srccoefs_quad(3,nqpols,nquad))
+      allocate(uvs_quad(2,nqpols),w(nqpols),u(nqpols,nqpols))
+      allocate(v(nqpols,nqpols))
 
-      itype = 0
+      itype = 2
       ipoly = 1
-      call polytens_exps_2d(ipoly,itype,norder+1,uvs_quad,'f',u,ldu, &
-        v,ldv,w)
+      call polytens_exps_2d(ipoly,itype,norder+1,uvs_quad,'f',u,nqpols, &
+        v,nqpols,w)
       call prin2('uvs_quad=*',uvs_quad,24)
       
       open(unit=33,file=trim(fnameout))
+      alpha = 1.0d0
+      beta = 0.0d0
       do i=1,nquad
-        itri1 = itri0(1,i)
-        itri2 = itri0(2,i)
+        i1 = itri0(1,i)
+        i2 = itri0(2,i)
         call convert_tri_to_quad(norder,ntpols,nqpols, &
-          uvs_quad,srccoefs(1,ixyzs(itri1)),
-          srccoefs(1,ixyzs(itri2)),src_quad(1,1,i))
+          uvs_quad,srccoefs(1,ixyzs(i1)), &
+          srccoefs(1,ixyzs(i2)),src_quad(1,1,i))
         do j=1,nqpols
           write(33,'(3(2x,e22.16))') src_quad(1,j,i), &
             src_quad(2,j,i),src_quad(3,j,i)
         enddo
+
+        call dgemm_guru('n','t',3,nqpols,nqpols,alpha,src_quad(1,1,i),3,&
+          u,nqpols,beta,srccoefs_quad(1,1,i))
+        if(i.le.3) call prin2('srccoefs_quad=*',srccoefs_quad(1,1,i),3*nqpols)
       enddo
 
 

@@ -21,7 +21,7 @@
       real *8 thet,phi
       complex * 16 zpars(3)
       integer numit,niter
-      character *200 title,fname,fname1,fname2,fname3
+      character *200 title,fname,fname1,fname2,fname3,fname_base,fname_out
 
       integer ipatch_id
       real *8 uvs_targ(2)
@@ -59,8 +59,11 @@
 
       norder = 16
       iref = 0
-      write(fname,'(a,i2.2,a,i1,a)') '../geometries_go3/cow_new_o', &
+      fname_base = '../geometries_go3/cow_new'
+      write(fname,'(a,a,i2.2,a,i1,a)') trim(fname_base),'_o', &
         norder,'_r0',iref,'.go3'
+      write(fname_out,'(a,a,i2.2,a,i1,a)') trim(fname_base),'_o', &
+        norder,'_r0',iref,'_quad.go3'
       write(fname1,'(a,i2.2,a,i1,a)') '../vtk_files/cow_new_o', &
         norder,'_r0',iref,'.vtk'
             
@@ -75,6 +78,7 @@
 
       call open_gov3_geometry(fname,npatches,norders,ixyzs,&
          iptype,npts,srcvals,srccoefs,wts)
+      goto 1111
 
       allocate(cms(3,npatches),rads(npatches))
 
@@ -120,6 +124,8 @@
 
       call plot_surface_info_all(dlam,npatches,norders,ixyzs,iptype, &
         npts,srccoefs,srcvals,trim(fname1),'a')
+ 1111 continue
+      call trimesh_to_quadmesh(fname_base,norder,iref,fname_out)
 
 
       stop

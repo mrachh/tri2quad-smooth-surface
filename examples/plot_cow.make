@@ -62,7 +62,7 @@ FEND = -L${FMMBIE_INSTALL_DIR} $(LLINKLIB) -L${FMM_INSTALL_DIR} $(LFMMLINKLIB)
 
 .PHONY: all clean 
 
-OBJECTS =  plot_cow.o
+OBJECTS =  plot_cow.o ../src/tri_to_quad_routs.o ../src/polytens.o ../src/chebexps.o   
 
 #
 # use only the file part of the filename, then manually specify
